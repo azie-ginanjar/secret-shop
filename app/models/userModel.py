@@ -9,13 +9,15 @@ class User(db.Model):
     username = db.Column(db.String(80), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
     address = db.Column(db.String(255), nullable=True)
-    email = db.Column(db.String(120), nullable=True, unique=True)
+    email = db.Column(db.String(120), nullable=False, unique=True)
+    role_id = db.Column(db.Integer, nullable=False)
 
-    def __init__(self, username, email, password, address):
+    def __init__(self, username, email, password, address, role_id):
         self.username = username
         self.email = email
         self.address = address
         self.password = password
+        self.role_id = role_id
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -39,7 +41,8 @@ class ApiModel:
             "username": fields.String,
             "email": fields.String,
             "address": fields.String,
-            "password": fields.String
+            "password": fields.String,
+            "role_id": fields.Integer
         })
 
         self.usersModel = api.model('usersModel', {

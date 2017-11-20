@@ -4,13 +4,12 @@ from flask import jsonify
 from flask_jwt_extended import create_access_token
 from flask_restplus import reqparse, Resource, Namespace
 from sqlalchemy.exc import IntegrityError
-from werkzeug.exceptions import InternalServerError, Unauthorized
+from werkzeug.exceptions import InternalServerError, Unauthorized, BadGateway
 
 from app.dao import daoPool
 from app.models.userModel import User as UserModel, ApiModel
+from app.models.roleModel import Role as RoleModel
 from ..util.hashUtil import toSHA256
-
-fileDir = os.path.dirname(__file__)
 
 api = Namespace('users', description='user operation')
 apiModel = ApiModel(api)
@@ -22,6 +21,7 @@ parser.add_argument('username', required=True, help='username of user', location
 parser.add_argument('email', required=True, help='email of user', location='json')
 parser.add_argument('address', required=False, help='address of user', location='json')
 parser.add_argument('password', required=True, help='password of user', location='json')
+parser.add_argument('role_id', required=True, help='id of user role', location='json')
 
 parserLogin = reqparse.RequestParser()
 parserLogin.add_argument('username', required=True, help='username of user', location='json')
@@ -51,18 +51,27 @@ class Users(Resource):
 
     @api.expect(parser, validate=False)
     @api.response(200, 'Success', apiModel.postModel)
-    @api.doc(description='Add new user by username and email . \n\n ')
+    @api.doc(description='Add new user . \n\n ')
     def post(self):
         """ add user """
         args = parser.parse_args()
-        user = UserModel(args['username'], args['email'], toSHA256(args["password"]), args["address"])
+
+        # validate role_id
+        role = RoleModel.find_role_by_id(args['role_id'])
+
+        print role
+
+        if role is None:
+            raise BadGateway('Invalid role_id')
+
+        user = UserModel(args['username'], args['email'], toSHA256(args["password"]), args["address"], args["role_id"])
         try:
             sqlDAO.session.add(user)
             sqlDAO.session.commit()
         except IntegrityError:
             raise InternalServerError("username or email already in used")
 
-        return user
+        return user.to_dict()
 
 
 @api.route('/login')
