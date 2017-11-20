@@ -51,7 +51,7 @@ def create_app(flask_config_name=None):
     # oauth.init_oauth(app)
 
     # jwt init
-    JWTManager(app)
+    jwt = JWTManager(app)
 
 
     ## Api init
@@ -59,4 +59,5 @@ def create_app(flask_config_name=None):
 
     api.init_app(app)
 
+    jwt._set_error_handler_callbacks(app)
     return app

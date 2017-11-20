@@ -1,14 +1,13 @@
-import os
-
 from flask import jsonify
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_restplus import reqparse, Resource, Namespace
+from jwt import DecodeError
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import InternalServerError, Unauthorized, BadGateway
 
 from app.dao import daoPool
-from app.models.userModel import User as UserModel, ApiModel
 from app.models.roleModel import Role as RoleModel
+from app.models.userModel import User as UserModel, ApiModel
 from ..util.hashUtil import toSHA256
 
 api = Namespace('users', description='user operation')
@@ -85,7 +84,26 @@ class Login(Resource):
         resp = UserModel.find_user_by_username_password(args['username'], toSHA256(args["password"]))
 
         if resp is not None:
-            access_token = create_access_token(identity=args['username'])
+            access_token = create_access_token(identity=resp.id)
             return jsonify(access_token=access_token)
         else:
             raise Unauthorized("Bad username or password")
+
+
+@api.route('/token')
+class Users(Resource):
+    def __init__(self, Resource):
+        self.api = api
+
+    @api.doc(description='Get user detail . \n\n ')
+    @api.response(200, 'Success', apiModel.userModel)
+    @jwt_required
+    def get(self):
+        # Access the identity of the current user with get_jwt_identity
+        try:
+            current_user = get_jwt_identity()
+            user = UserModel.find_user_by_id(current_user)
+        except DecodeError as er:
+            raise Unauthorized(er.message)
+
+        return jsonify(user.to_dict())

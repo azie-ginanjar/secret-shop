@@ -32,6 +32,12 @@ class User(db.Model):
         query = query.filter(cls.password == password)
         return query.first()
 
+    @classmethod
+    def find_user_by_id(cls, id):
+        query = cls.query
+        query = query.filter(cls.id == id)
+        return query.first()
+
 
 # Model definition
 class ApiModel:
