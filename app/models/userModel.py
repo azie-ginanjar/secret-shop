@@ -23,6 +23,13 @@ class User(db.Model):
     def to_dict(self):
         return {c.name: getattr(self, c.name, None) for c in self.__table__.columns}
 
+    @classmethod
+    def find_user_by_username_password(cls, username, password):
+        query = cls.query
+        query = query.filter(cls.username == username)
+        query = query.filter(cls.password == password)
+        return query.first()
+
 
 # Model definition
 class ApiModel:

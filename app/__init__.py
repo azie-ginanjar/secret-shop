@@ -1,6 +1,8 @@
 import logging
 import os
 from flask import Flask
+from flask_jwt_extended import JWTManager
+
 from app.util.hashUtil import toSHA256
 
 
@@ -49,6 +51,9 @@ def create_app(flask_config_name=None):
     ## Oauth init
     # from app import oauth
     # oauth.init_oauth(app)
+
+    # jwt init
+    JWTManager(app)
 
 
     ## Api init

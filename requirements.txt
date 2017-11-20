@@ -1,4 +1,7 @@
+werkzeug
+sqlalchemy
 Flask
 flask-restplus
 gunicorn
 Flask-SQLAlchemy
+flask-jwt-extended
